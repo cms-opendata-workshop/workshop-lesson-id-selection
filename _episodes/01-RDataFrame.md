@@ -18,9 +18,9 @@ In the previous exercises, you learned how to access and store object informatio
 The `Events` tree within the NanoAOD files contains all the derived information required for many searches or measurements. We will study
 a search for the Higgs boson in the tau tau decay channel -- you can go back to the pre-exercises to find the published paper. 
 
-To begin, check out the "dummyworkshop" branch of this analysis code:
+To begin, check out the workshop's version of this analysis code:
 ~~~
-$ git clone -b dummyworkshop git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
+$ git clone git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
 $ cd Htautau
 ~~~
 {: .source}
