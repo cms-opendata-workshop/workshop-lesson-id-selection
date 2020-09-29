@@ -1,102 +1,121 @@
 ---
-title: "Higgs to Tau Tau analysis and RDataFrame"
+title: "Higgs to Tau Tau analysis"
 teaching: 20
 exercises: 10
 questions:
 - "How is the Higgs -> Tau Tau analysis example set up?"
 objectives:
 - "Checkout Higgs -> Tau Tau code for the workshop"
-- "Understand basic RDataFrame commands for filtering and defining variables"
+- "Review the basic RDataFrame commands for filtering and defining variables"
 keypoints:
 - "First key point. Brief Answer to questions. (FIXME)"
 ---
 
-## 
+With physics object prepared and NanoAOD files created, we are ready to begin thinking about an actual
+physics analysis!
 
-CMS NanoAOD files store per-event information that is needed in analyses. 
-NanoAOD files are stored in Ntuple format and contains a main TTree named Events and some additional TTrees for run, lumi and metadata. 
+In the previous exercises, you learned how to access and store object information from an AOD file and convert the AOD file to NanoAOD.
+The `Events` tree within the NanoAOD files contains all the derived information required for many searches or measurements. We will study
+a search for the Higgs boson in the tau tau decay channel -- you can go back to the pre-exercises to find the published paper. 
 
-In the previous exercises, you learned how to access and store object information from an AOD file and convert the AOD file to NanoAOD using the [AOD2NanoAODOutreachTool](https://github.com/cms-opendata-analyses/AOD2NanoAODOutreachTool). 
-[HiggsTauTauNanoAODOutreachAnalysis] (https://github.com/cms-opendata-analyses/HiggsTauTauNanoAODOutreachAnalysis) repository  contains an analysis that reduces the NanoAOD files to study the decay of a Higgs boson to two tau leptons.
-This exercise uses this repository as the example we will use for selecting events in the NanoAOD based on requirements on muons and taus.  
+To begin, check out the "dummyworkshop" branch of this analysis code:
+~~~
+$ git clone -b dummyworkshop git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
+$ cd Htautau
+~~~
+{: .source}
+
+## Data and simulation files
+
+You learned in the Data Scouting lesson to search for CMS Open Data samples, and in the previous lesson we discussed how to
+run the AOD2NanoAOD tool over multiple files to incorporate your changes to `AOD2NanoAOD.cc`. For the sake of time in the
+workshop, data and simulation NanoAOD samples have already been produced for you. 
 
 Data samples to be used in the analysis:
 
-*Run2012B_TauPlusX
-*Run2012C_TauPlusX
+ * Run2012B_TauPlusX
+ * Run2012C_TauPlusX
 
+Signal simulations to be used in the analysis:
 
-Simulations to be used in the analysis:
+ * GluGluToHToTauTau (gluon-gluon fusion Higgs production)
+ * VBF_HToTauTau (vector boson fusion Higgs production)
 
-*GluGluToHToTauTau
-*VBF_HToTauTau
 Background processes can produce very similar signatures in the detector which have to be considered in the anaylsis.
-The most prominent background processes with a similar signature:
-*DYJetsToLL
-*TTbar
-*W1JetsToLNu
-*W2JetsToLNu
-*W3JetsToLNu
+The most prominent background processes with a similar signature include:
 
-We have to take all these background processes into account when analyzing our data and drawing conclusions.
-In event selection, our goal is to keep the signal coming from Higss to tau tau decay and suppress the backgrounds.
-These background processes can be suppressed by introducing kinematic limits on the physics objects.
-For instance, the W boson can decay into a lepton. The leptons can be misidentified as coming from a signal. 
-A cut in the event selection on the transverse mass of the muon and the missing energy can strongly suppress this background coming from W+ jets. 
+ * DYJetsToLL (gamma*/Z production with decays to leptons)
+ * TTbar (top quark pair production)
+ * W1JetsToLNu (W boson produced with 1 jet)
+ * W2JetsToLNu (W boson produced with 2 jets)
+ * W3JetsToLNu (W boson produced with 3 jets)
 
-#Viewing NanoAOD files
+All of these files can be accessed from the "eospublic" realm:
 
 ~~~
-root -l root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root
-new TBrowser;
+$ root -l root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root
+[0] TBrowser b
 ~~~
 {: .source}
 
-[Insert picture of Tree here]
+## Review of TTree::Draw and RDataFrame
 
-{: .output}
+>Before moving on, please follow the pre-exercises on ROOT (especially TTree::Draw) and RDataFrame if you did not do so earlier.
+{: .callout}
 
-You can now view the Event branches by selecting the root file GluGluToHToTauTau.root and selecting the main TTree named Events.
-You can make cuts interactively on event branches in root.
-As an example there is a branch named Muon_pt and we can make the event selection for Muon pt > 17 
+To review: the Events tree inside the NanoAOD file can be used to draw histograms of branches within the tree, and cuts can be
+performed using any branch in the tree. 
 
 ~~~
-TTree *Events = (TTree*)_file0->Get("Events")
-Events->Draw("Muon_pt","Muon_pt>17")
+[0] TTree *Events = (TTree*)_file0->Get("Events")
+[1] Events->Draw("Muon_pt")  // draws a histogram of muon momentum
+[2] Events->Draw("Muon_pt","Muon_pt > 17") // draws a histogram of muon momentum for muons with pT > 17 GeV
+[3] Events->Draw("Muon_pt","value_jet_n > 10") // draws a histogram of muon momentum in events with more than 10 jets
 ~~~
 {: .source}
 
-[Insert output]
-{: .output}
+The RDataFrame classes in ROOT offer column-based processing that is useful for speeding up analyses using ROOT files.
+RDataFrame also allows for multi-threading. To draw the same set of 3 histograms from the review example above, we
+will need to use some "filters".
 
-The RDataFrame in ROOT offers a high level interface for anlyses of data stored in TTree, 
 ~~~
 #include "ROOT/RDataFrame.hxx"
 ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
 ROOT::RDataFrame df("Events", "root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root"); //Interface to TTree
+
 auto myHisto = df.Histo1D("Muon_pt"); // This happens in parallel!
 myHisto->Draw();
+
+auto df2 = df.Define("Muon_pt_highPt","Muon_pt[Muon_pt > 17]")
+auto df3 = df2.Filter("value_jet_n > 10")
+
+auto myHisto2 = df2.Histo1D("Muon_pt_highPt"); // new branch in a dataframe without extra cuts
+auto myHisto3 = df3.Histo1D("Muon_pt"); // old branch in a dataframe with a new cut applied
+
+myHisto2->Draw("pe same");
+myHisto3->Draw("hist same");
+FIXME
 ~~~
 {: .source}
 
-[Insert output]
-{: .output}
+An RDataFrame can perform transformations (to manupulate the data) and actions (to produce a result from the data). 
+The `Define` and `Filter` methods are transformations while the `Count` and `Report` methods are actions.
 
-The RDataFrame can perform transformations (to manupulate the data) and actions (to produce a result from the data). 
-The Define and Filter methods are transformations while the Count and Report methods are actions.
-
-Define - Creates a new column in the datset 
-Filter - Filters the rows of the dataset
-Count  - Returns the number of events processed
-Report - Obtains statistics on how many entries have been accepted and rejected by the filters
+ * Define: Creates a new column in the datset 
+ * Filter: Filters the rows of the dataset
+ * Count: Returns the number of events processed
+ * Report: Obtains statistics on how many entries have been accepted and rejected by the filters
 
 ~~~
 std::cout << "Number of events: " << *df.Count() << std::endl;
 ~~~
+{: .source}
 
-Source: (https://root.cern/doc/master/classROOT_1_1RDataFrame.html)
-
-MORE MORE MORE!
+>## Challenge: replicate histograms with RDataFrame
+>
+>Perform the examples above and confirm that you get matching histograms from either method.
+>Are you able to tell a difference in speed for this small test?
+{: .challenge}
 
 {% include links.md %}
 

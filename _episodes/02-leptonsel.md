@@ -1,5 +1,5 @@
 ---
-title: "Lepton ID and selection"
+title: "Event selection"
 teaching: 10
 exercises: 10
 questions:
@@ -14,32 +14,69 @@ objectives:
 - "Identification and isolation criteria depend mostly on your physics analysis goals."
 ---
 
-FIXME: Add an intro to this part of the lesson, since it was split off from before.
+Event selection for the Higgs -> tau tau search is performed in the file called `skim.cxx`. As we select events, our goal is to keep the signal
+events from Higgs to tau tau decay and suppress the background events from other sources (Drell-Yan, W boson, top quarks, etc).
+Many background processes can be suppressed by introducing kinematic limits on the physics objects.
+For instance, a W boson could decay to a muon and neutrino, similar to a tau decay, but only the W boson background processes should have
+the transverse mass of the muon and neutrino (modeled by the missing transverse energy) near 80 GeV. Cuts on key distinguishing variables
+can strongly suppress background.
 
-This function performs a selection on the minimal requirements of an event.
-Here we require that the event passes a high level trigger and we have at least one muon and tau candidate in our event.
- 
+## Trigger and final state definition
+
+The first event selection requirement should be a set of triggers. In fact, we have made a hidden trigger selection by analyzing the
+"TauPlusX" datasets! Only events passing some tau-related trigger will enter our data files.
+
+In the `MinimalSelection` function we will filter events by requiring they fire a tau + muon trigger -- this means we are choosing
+to search for events in which one of the tau leptons decayed to a muon. We will certainly reject signal events based on this
+requirement, but narrowing the final state makes the relevant background processes more clear and simplifies the search procedure. 
+
 ~~~
 template <typename T>
 auto MinimalSelection(T &df) {
     return df.Filter("HLT_IsoMu17_eta2p1_LooseIsoPFTau20 == true", "Passes trigger")
-             .Filter("nMuon > 0", "nMuon > 0")
-             .Filter("nTau > 0", "nTau > 0");
 }
 ~~~
 {: .source}
 
-We use this funciton to find the interesting muons in the muon collection. 
-This selection requires muons to have eta<2.1 and pt>17 and also requires the muon to pass tightId.
+>## Challenge: require muons and taus
+>
+>In the same function, require that each event have at least one muon and at least one tau lepton. (hint: .Filter() commands can be chained together in the same statement)
+>Open a VBF signal ROOT file and use TTree::Draw to plot a histogram of the number of tau leptons in each event, and then the number of muons in each event.
+>What do the distributions tell you about the sources of these leptons?
+>TESTME
+{: .challenge}
 
-~~~
-template <typename T>
-auto FindGoodMuons(T &df) {
-    return df.Define("goodMuons", "abs(Muon_eta) < 2.1 && Muon_pt > 17 && Muon_tightId == true");
-}
+## Lepton selection criteria
 
-~~~
-{: .source}
+We clearly need to slim down the number of muons! The typical event has far more than 2 muons from tau decays. The `FindGoodMuons` function will add a new column
+to the dataframe that defines a "good muon" for the purpose of our analysis.
+
+>What constitutes a good muon?
+{: .discussion}
+
+For any physics object, the selection criteria typically include:
+ * kinematic constraints (momentum, pseudorapidity, masses of object pairs, etc)
+ * identification requirements (loose, medium, tight quality levels)
+ * isolations requirements (loose, medium, tight isolation levels)
+
+Which kinematic constraints should be applied? The first place to look is the trigger path: "HLT_IsoMu17_eta2p1_LooseIsoPFTau20".
+This trigger path selects events with an isolated muon that has pT > 17 GeV and |eta| < 2.1; along with a loose, isolation tau lepton with pT > 20 GeV.
+In an ideal case, "offline" (post-trigger) selection criteria are universally more restrictive than "online" (trigger) selection criteria, especially
+in terms of transverse momentum. This allows analysts to avoid the murky kinematic regions of "trigger turn-ons" in which data and simulation might respond
+differently to the application of the trigger because of small differences in the input variables.
+
+>## Challenge: define good muons
+>
+>Complete the `FindGoodMuons` function with selection criteria on muon momentum, pseudorapidity, identification level, and isolation level.
+>
+>~~~
+>template <typename T>
+>auto FindGoodMuons(T &df) {
+>    return df.Define("goodMuons", "abs(Muon_eta) < 2.1 && Muon_pt > 17 && Muon_tightId == true");
+>}
+>~~~
+>{: .source}
+{: .challenge}
 
 We use this function to find the interesting taus in the tau collection. These tau candidates represent hadronic decays of taus which means that
 the tau decays to combinations of pions and neutrinos in the final state. Add your cuts on tau eta and pt similar to how it was done for muon.
