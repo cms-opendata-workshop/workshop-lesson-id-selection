@@ -43,7 +43,6 @@ auto MinimalSelection(T &df) {
 >In the same function, require that each event have at least one muon and at least one tau lepton. (hint: .Filter() commands can be chained together in the same statement)
 >Open a VBF signal ROOT file and use TTree::Draw to plot a histogram of the number of tau leptons in each event, and then the number of muons in each event.
 >What do the distributions tell you about the sources of these leptons?
->TESTME
 {: .challenge}
 
 ## Lepton selection criteria
@@ -52,7 +51,7 @@ We clearly need to slim down the number of muons! The typical event has far more
 to the dataframe that defines a "good muon" for the purpose of our analysis.
 
 >What constitutes a good muon?
-{: .discussion}
+{: .callout}
 
 For any physics object, the selection criteria typically include:
  * kinematic constraints (momentum, pseudorapidity, masses of object pairs, etc)
@@ -88,7 +87,7 @@ differently to the application of the trigger because of small differences in th
 {: .challenge}
 
 >What constitutes a good hadronic tau?
-{: .discussion}
+{: .callout}
 
 Taus that decay to hadrons and neutrinos are identified using similar logic, but with combinations of tau identification discriminants instead of the simpler
 loose/medium/tight framework. The [tau ID reference page](https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookPFTauTagging#Legacy_Tau_ID_Run_I) gives
@@ -136,7 +135,7 @@ auto FilterGoodEvents(T &df) {
 {: .language-cpp}
 
 >How should we determine which muon-tau pair for the best Higgs boson candidate?
-{: .discussion}
+{: .callout}
 
 This is not possible will the simple one-liner RDataFrame commands we have used so far. Instead, we will need a C++
 function based on the `RVec` columns. The function is called `build_pair` and it takes several arguments:
