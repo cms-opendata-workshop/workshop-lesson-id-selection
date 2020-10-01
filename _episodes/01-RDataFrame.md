@@ -17,7 +17,7 @@ To begin, check out the workshop's version of this analysis code:
 $ git clone git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
 $ cd Htautau
 ~~~
-{: .source}
+{: .language-bash}
 
 ## Data and simulation files
 
@@ -50,7 +50,7 @@ All of these files can be accessed from the "eospublic" realm:
 $ root -l root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root
 [0] TBrowser b
 ~~~
-{: .source}
+{: .language-bash}
 
 ## Review of TTree::Draw and RDataFrame
 
@@ -66,13 +66,13 @@ performed using any branch in the tree.
 [2] Events->Draw("Muon_pt","Muon_pt > 17") // draws a histogram of muon momentum for muons with pT > 17 GeV
 [3] Events->Draw("Muon_pt","value_jet_n > 10") // draws a histogram of muon momentum in events with more than 10 jets
 ~~~
-{: .source}
+{: .language-bash}
 
 The RDataFrame classes in ROOT offer column-based processing that is useful for speeding up analyses using ROOT files.
 RDataFrame also allows for multi-threading. To draw the same set of 3 histograms from the review example above, we
 will need to use some "filters".
 
-~~~
+```cpp
 #include "ROOT/RDataFrame.hxx"
 ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
 ROOT::RDataFrame df("Events", "root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root"); //Interface to TTree
@@ -89,8 +89,8 @@ auto myHisto3 = df3.Histo1D("Muon_pt"); // old branch in a dataframe with a new 
 myHisto2->Draw("pe same");
 myHisto3->Draw("hist same");
 FIXME
-~~~
-{: .source}
+```
+
 
 An RDataFrame can perform transformations (to manupulate the data) and actions (to produce a result from the data). 
 The `Define` and `Filter` methods are transformations while the `Count` and `Report` methods are actions.
