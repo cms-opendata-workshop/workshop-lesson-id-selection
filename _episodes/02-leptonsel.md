@@ -8,7 +8,7 @@ objectives:
 - "Understand typical object selection criteria"
 - "Implement selections for the muon and tau examples"
 - "Begin the workshop's physics analysis example"
-.keypoints:
+keypoints:
 - "Selection criteria include kinematic limits (momentum and angle), identification, and isolation."
 - "Kinematic limits are usually based on detector ranges and the physics process being studied."
 - "Identification and isolation criteria depend mostly on your physics analysis goals."
