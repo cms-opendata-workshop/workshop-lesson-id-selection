@@ -1,7 +1,7 @@
 ---
 title: "Event selection"
 teaching: 10
-exercises: 10
+exercises: 20
 questions:
 - "How can I select events in which to search for Higgs -> tau tau?"
 objectives:

@@ -1,7 +1,7 @@
 ---
 title: "Higgs to Tau Tau analysis"
 teaching: 5
-exercises: 5
+exercises: 10
 questions:
 - "How is the Higgs -> Tau Tau analysis example set up?"
 objectives:
