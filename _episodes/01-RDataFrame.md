@@ -1,22 +1,16 @@
 ---
 title: "Higgs to Tau Tau analysis"
-teaching: 20
-exercises: 10
+teaching: 5
+exercises: 5
 questions:
 - "How is the Higgs -> Tau Tau analysis example set up?"
 objectives:
 - "Checkout Higgs -> Tau Tau code for the workshop"
 - "Review the basic RDataFrame commands for filtering and defining variables"
 keypoints:
-- "First key point. Brief Answer to questions. (FIXME)"
+- "The NanoAOD samples required for this analysis include data, simulated signals, and several simulated backgrounds"
+- "RDataFrame tools are useful for efficiently manipulating data and plotting histograms."
 ---
-
-With physics object prepared and NanoAOD files created, we are ready to begin thinking about an actual
-physics analysis!
-
-In the previous exercises, you learned how to access and store object information from an AOD file and convert the AOD file to NanoAOD.
-The `Events` tree within the NanoAOD files contains all the derived information required for many searches or measurements. We will study
-a search for the Higgs boson in the tau tau decay channel -- you can go back to the pre-exercises to find the published paper. 
 
 To begin, check out the workshop's version of this analysis code:
 ~~~
