@@ -103,7 +103,7 @@ The `Define` and `Filter` methods are transformations while the `Count` and `Rep
 ~~~
 std::cout << "Number of events: " << *df.Count() << std::endl;
 ~~~
-{: .source}
+{: .language-cpp}
 
 >## Challenge: replicate histograms with RDataFrame
 >

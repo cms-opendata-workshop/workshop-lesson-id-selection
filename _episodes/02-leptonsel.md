@@ -36,7 +36,7 @@ auto MinimalSelection(T &df) {
     return df.Filter("HLT_IsoMu17_eta2p1_LooseIsoPFTau20 == true", "Passes trigger")
 }
 ~~~
-{: .source}
+{: .language-cpp}
 
 >## Challenge: require muons and taus
 >
@@ -83,7 +83,7 @@ differently to the application of the trigger because of small differences in th
 >    return df.Define("goodMuons", "BOOLEAN CONDITIONS GO HERE");
 >}
 >~~~
->{: .source}
+>{: .language-cpp}
 >(hint: Muon_pt, Muon_eta, Muon_tightId, Muon_looseId, etc, are branches of interest.)
 {: .challenge}
 
@@ -105,7 +105,7 @@ a brief description of each type identification variable. They note that we alwa
 >    return df.Define("goodTaus", "Tau_charge != 0 && abs(Tau_eta) < 2.3 && Tau_pt > 20 && BOOLEAN ID CONDITIONS HERE");
 >}
 >~~~
->{: .source}
+>{: .language-cpp}
 {: .challenge}
 
 ## Selecting on jets and MET
@@ -133,7 +133,7 @@ auto FilterGoodEvents(T &df) {
              .Filter("Sum(goodMuons) > 0", "Event has good muons");
 }
 ~~~
-{: .source}
+{: .language-cpp}
 
 >How should we determine which muon-tau pair for the best Higgs boson candidate?
 {: .discussion}
@@ -202,7 +202,7 @@ auto FindMuonTauPair(T &df) {
             };
 }
 ~~~
-{: source}
+{: language-cpp}
 
 >## Challege: select lowest-iso tau
 >
@@ -221,7 +221,7 @@ lepton in the column should be used to form a Higgs boson.
              .Define("idx_1", "pairIdx[0]")
              .Define("idx_2", "pairIdx[1]")
 ~~~
-{: .source}
+{: .language-cpp}
 
 >##Challenge: Filter on a good muon and tau in the pair
 >
@@ -249,7 +249,7 @@ auto dfFinal = df9;
 auto report = dfFinal.Report();
 dfFinal.Snapshot("Events", sample + "Skim.root", finalVariables);
 ~~~
-{: .source}
+{: .language-cpp}
 
 The last line above saves a "snapshot" of the dataframe, which is a ROOT file with a new tree (still called "Events") containing only the
 branches listed in "finalVariables".
@@ -261,7 +261,7 @@ branches listed in "finalVariables".
 >~~~
 >.Define("goodJets", "Jet_puId == true && abs(Jet_eta) < 4.7 && Jet_pt > 30")
 >~~~
->{: .source}
+>{: .language-cpp}
 {: .challenge}
 
 ## Running the skimmer
@@ -273,7 +273,7 @@ $ source /cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-slc6-gcc8-opt/setup.sh
 $ g++ -g -O3 -Wall -Wextra -Wpedantic -o skim skim.cxx $(root-config --cflags --libs)
 $ ./skim
 ~~~
-{: .source}
+{: .language-bash}
 
 {% include links.md %}
 
