@@ -73,22 +73,21 @@ RDataFrame also allows for multi-threading. To draw the same set of 3 histograms
 will need to use some "filters".
 
 ```cpp
-#include "ROOT/RDataFrame.hxx"
-ROOT::EnableImplicitMT(); // Tell ROOT you want to go parallel
-ROOT::RDataFrame df("Events", "root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root"); //Interface to TTree
+[0] ROOT::EnableImplicitMT() // Tell ROOT you want to go parallel
+[1] ROOT::RDataFrame df("Events", "root://eospublic.cern.ch//eos/opendata/cms/derived-data/AOD2NanoAODOutreachTool/GluGluToHToTauTau.root"); //Interface to TTree
 
-auto myHisto = df.Histo1D("Muon_pt"); // This happens in parallel!
-myHisto->Draw();
+[2] auto myHisto = df.Histo1D("Muon_pt"); // This happens in parallel!
 
-auto df2 = df.Define("Muon_pt_highPt","Muon_pt[Muon_pt > 17]")
-auto df3 = df2.Filter("value_jet_n > 10")
+[3] auto df2 = df.Define("highPtMuons","Muon_pt > 17");
+[4] auto df3 = df2.Define("Muon_highpt","Muon_pt[highPtMuons]");
+[5] auto df4 = df3.Filter("nJet > 10");
 
-auto myHisto2 = df2.Histo1D("Muon_pt_highPt"); // new branch in a dataframe without extra cuts
-auto myHisto3 = df3.Histo1D("Muon_pt"); // old branch in a dataframe with a new cut applied
+[6] auto myHisto2 = df3.Histo1D("Muon_highpt"); // new branch in a dataframe without extra cuts
+[7] auto myHisto3 = df4.Histo1D("Muon_pt"); // old branch in a dataframe with a new cut applied
 
-myHisto2->Draw("pe same");
-myHisto3->Draw("hist same");
-FIXME
+[8] myHisto->Draw();
+[9] myHisto2->Draw("pe same");
+[10] myHisto3->Draw("pe same");
 ```
 
 
@@ -109,6 +108,13 @@ std::cout << "Number of events: " << *df.Count() << std::endl;
 >
 >Perform the examples above and confirm that you get matching histograms from either method.
 >Are you able to tell a difference in speed for this small test?
+>To run the RDataFrame example you will need to have cvmfs installed on your local machine
+>and mounted in your container. Source the proper ROOT environment and get a ROOT command line:
+>~~~
+>$ source /cvmfs/sft.cern.ch/lcg/views/LCG_95/x86_64-slc6-gcc8-opt/setup.sh
+>$ root -l
+>~~~
+>{: .language-bash}
 {: .challenge}
 
 {% include links.md %}
