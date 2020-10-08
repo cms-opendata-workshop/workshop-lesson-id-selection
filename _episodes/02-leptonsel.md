@@ -53,8 +53,9 @@ auto MinimalSelection(T &df) {
 >>~~~
 >>{: .language-cpp}
 >>
->>The plot of nMuon is shown below -- there are many more than the 1 expected from the signal, so clearly we need to do more work
->>to identify which muon is the interesting one from the tau decay.
+>>The plot of nMuon from the gg fusion H -> tau tau sample is shown below -- there are many more than the 1 expected from the signal, 
+>>so clearly we need to do more work to identify which muon is the interesting one from the tau decay.
+>>![](../assets/img/nMuon.png)
 >{: .solution}
 {: .challenge}
 
@@ -281,7 +282,7 @@ lepton in the column should be used to form a Higgs boson.
 ~~~
 {: .language-cpp}
 
->##Challenge: Filter on a good muon and tau in the pair
+>## Challenge: Filter on a good muon and tau in the pair
 >
 >Add `Filter` statements to the end of `FindMuonTauPair` to filter out events with bad indices for the muon or tau in the pair.
 >
