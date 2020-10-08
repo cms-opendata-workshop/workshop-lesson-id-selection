@@ -43,6 +43,19 @@ auto MinimalSelection(T &df) {
 >In the same function, require that each event have at least one muon and at least one tau lepton. (hint: .Filter() commands can be chained together in the same statement)
 >Open a VBF signal ROOT file and use TTree::Draw to plot a histogram of the number of tau leptons in each event, and then the number of muons in each event.
 >What do the distributions tell you about the sources of these leptons?
+>
+>>## Solution
+>>Add two more Filter statements in `MinimalSelection`:
+>>~~~
+>>   return df.Filter("HLT_IsoMu17_eta2p1_LooseIsoPFTau20 == true", "Passes trigger")
+>>            .Filter("nMuon > 0", "there are muons")
+>>	      .Filter("nTau > 0", "there are taus");
+>>~~~
+>>{: .language-cpp}
+>>
+>>The plot of nMuon is shown below -- there are many more than the 1 expected from the signal, so clearly we need to do more work
+>>to identify which muon is the interesting one from the tau decay.
+>{: .solution}
 {: .challenge}
 
 ## Lepton selection criteria
@@ -50,6 +63,7 @@ auto MinimalSelection(T &df) {
 We clearly need to slim down the number of muons! The typical event has far more than 2 muons from tau decays. The `FindGoodMuons` function will add a new column
 to the dataframe that defines a "good muon" for the purpose of our analysis.
 
+>## Question
 >What constitutes a good muon?
 {: .testimonial}
 
@@ -84,8 +98,17 @@ differently to the application of the trigger because of small differences in th
 >~~~
 >{: .language-cpp}
 >(hint: Muon_pt, Muon_eta, Muon_tightId, Muon_looseId, etc, are branches of interest.)
+>
+>>## Solution
+>>I've opted to tighten the momentum cut a little compared to the trigger, copy the trigger's eta requirement, and to require tight ID and loose isolation on the muon.
+>>~~~
+>>    return df.Define("goodMuons","Muon_pt > 20 && abs(Muon_eta) < 2.1 && Muon_tightId == true && Muon_pfreliso03all < 0.4");
+>>~~~
+>>{: .language-cpp}
+>{: .solution}
 {: .challenge}
 
+>## Question
 >What constitutes a good hadronic tau?
 {: .testimonial}
 
@@ -105,6 +128,18 @@ a brief description of each type identification variable. They note that we alwa
 >}
 >~~~
 >{: .language-cpp}
+>
+>>## Solution
+>>Based on the TWiki, we should always use byDecayModeFinding. Based on the trigger, we should require one of the isolation-based IDs.
+>>Additionally, since we want to be very careful to choose a hadronic tau, let's use an anti-electron and anti-muon ID:
+>>~~~
+>>    return df.Define("goodTaus","Tau_charge != 0 && abs(Tau_eta) < 2.3 && Tau_pt > 20 &&\
+>>                                 Tau_idDecayMode == true && Tau_idIsoTight == true &&\
+>>                                 Tau_idAntiEleTight == true && Tau_idAntiMuTight == true");
+>>~~~
+>>{: .language-cpp}
+>>The choices of tight vs medium or loose are up to the user based on studies of signal and background efficiency.
+>{: .solution}
 {: .challenge}
 
 ## Selecting on jets and MET
@@ -134,6 +169,7 @@ auto FilterGoodEvents(T &df) {
 ~~~
 {: .language-cpp}
 
+>## Question
 >How should we determine which muon-tau pair for the best Higgs boson candidate?
 {: .testimonial}
 
@@ -206,6 +242,29 @@ auto FindMuonTauPair(T &df) {
 >## Challege: select lowest-iso tau
 >
 >Complete the function above to select the pair with the highest muon pT (already implemented) and the most isolated tau (missing)
+>
+>>## Solution
+>>The example has already chosen a well-separated pair with the highest-pT muon. We just need to minimize the `minIso` variable:
+>>~~~
+>>  // Find best tau based on iso
+>>  int idx_2 = -1;
+>>  float minIso = 999;
+>>  for(size_t i = 0; i < numComb; i++) {
+>>      if(validPair[i] == 0) continue;
+>>      if(int(comb[0][i]) != idx_1) continue;
+>>
+>>	// get the index of the tau (element 1) in combination #i
+>>      const auto tmp = comb[1][i]
+>>
+>>	// test that tau's isolation against the minimum and reset if needed
+>>      if(minIso < iso_2[tmp]){
+>>  	    minIso = iso_2[tmp];
+>>	    idx_2 = tmp;
+>>	}
+>>  }
+>>~~~
+>>{: .language-cpp}
+>{: .solution}
 {: .challenge}
 
 The rest of the `FindMuonTauPair` function shows how to call `build_pair` in RDataFrame and pass it the necessary columns.
@@ -225,6 +284,17 @@ lepton in the column should be used to form a Higgs boson.
 >##Challenge: Filter on a good muon and tau in the pair
 >
 >Add `Filter` statements to the end of `FindMuonTauPair` to filter out events with bad indices for the muon or tau in the pair.
+>
+>>## Solution
+>>A bad index means the value is -1. The index would only remain -1 if no valid pairs of good muons and good taus were found, so
+>>this is a way to require that a good pair exists in the event.
+>>~~~
+>>  .Define("idx_2", "pairIdx[0]")
+>>  .Filter("idx_1 != -1", "muon index is good")
+>>  .Filter("idx_2 != -1", "tau index is good")
+>>~~~
+>>{: .language-cpp}
+>{: .solution}
 {: .challenge}
 
 
@@ -261,6 +331,39 @@ branches listed in "finalVariables".
 >.Define("goodJets", "Jet_puId == true && abs(Jet_eta) < 4.7 && Jet_pt > 30")
 >~~~
 >{: .language-cpp}
+>
+>>## Solution
+>>Several masses are defined:
+>> * `m_1` = mass of the good muon selected for the Higgs decay
+>> * `m_2` = mass of the good tau selected for the Higgs decay
+>> * `mt_1` = transverse mass from the `compute_mt` helper function, calculated from the muon and the MET
+>> * `mt_2` = transverse mass from the `compute_mt` helper function, calculated from the tau and the MET
+>> * `m_vis` = "visible" mass of the Higgs boson. This is computed from the `p4` variable, which was previously defined as the sum of the muon and tau four-vectors
+>> * `mjj` = jet mass from the `compute_mjj` function, which returns the mass of the four-vector in the first argument if there are at least 2 good jets. The first argument
+>> is the `jP4` variable, defined a few lines above as the sum of the first and second jet four-vectors. The `compute_mjj` function adds a protection against cases where there
+>> is only one jet.
+>>
+>>To add a jet-muon separation requirement, we could add a definition and then use it in `goodJets`. For simplicity, let's write a compute_dR function:
+>>~~~
+>>auto compute_dR = [](RVec<float> &eta_j, RVec<float> &phi_j, float eta_m, float phi_m)
+>>{
+>>  RVec<float> jetmuDR(eta_j.size(),-9);
+>>
+>>  for(unsigned int ijet = 0; ijet < eta_j.size(); ijet++){
+>>     const auto dphi = Helper::DeltaPhi(phi_j[ijet], phi_m);
+>>	jetmuDR[ijet] = std::sqrt((eta_j[ijet] - eta_m)*(eta_j[ijet] - eta_m) + dphi*dphi);
+>>  }
+>>  return jetmuDR
+>>}
+>>~~~
+>>{: .language-cpp}
+>>Now we can use this function in a definition:
+>>~~~
+>>  .Define("Jet_muDR",compute_dR, {"Jet_eta", "Jet_phi", "eta_1", "phi_1"})
+>>  .Define("goodJets", "Jet_puId == true && abs(Jet_eta) < 4.7 && Jet_pt > 30 && Jet_muDR > 0.4")
+>>~~~
+>>{: .language-cpp}
+>{: .solution}
 {: .challenge}
 
 ## Running the skimmer

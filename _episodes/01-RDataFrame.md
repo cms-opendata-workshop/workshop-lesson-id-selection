@@ -12,12 +12,15 @@ keypoints:
 - "RDataFrame tools are useful for efficiently manipulating data and plotting histograms."
 ---
 
-To begin, check out the workshop's version of this analysis code:
-~~~
-$ git clone git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
-$ cd Htautau
-~~~
-{: .language-bash}
+>## Setup
+>To begin, check out the workshop's version of this analysis code if you have not done so already:
+>~~~
+>$ cd ~/CMSSW_5_3_32/src/
+>$ git clone git://github.com/cms-opendata-workshop/HiggsTauTauNanoAODOutreachAnalysis Htautau
+>$ cd Htautau
+>~~~
+>{: .language-bash}
+{: .prereq}
 
 ## Data and simulation files
 
