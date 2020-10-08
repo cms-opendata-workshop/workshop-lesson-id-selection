@@ -237,7 +237,7 @@ auto FindMuonTauPair(T &df) {
             };
 }
 ~~~
-{: language-cpp}
+{: .language-cpp}
 
 >## Challege: select lowest-iso tau
 >
